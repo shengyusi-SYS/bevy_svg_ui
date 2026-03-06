@@ -4,7 +4,10 @@ name = "bevy_svg_ui"
 version = "1.0.1"
 
 [dependencies]
-bevy = { workspace = true }
-thiserror = { workspace = true }
+bevy = { version = "0.18.1", default-features = false, features = ["ui"] }
+thiserror = "2.0.18"
 resvg = "0.46.0"
 regex-lite = "0.1"
+
+[dev-dependencies]
+bevy = { version = "0.18.1", default-features = false, features = ["ui"] }
