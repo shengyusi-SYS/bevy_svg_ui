@@ -1,3 +1,5 @@
+仅fork自用（其它相关库都莫名其妙用不了...）
+
 # Bevy Resvg
 
 A simple library for rendering SVGs in Bevy using the amazing
@@ -45,36 +47,36 @@ Here's a complete comparison between the three:
 
 ## Comparison between Bevy Resvg, `bevy_svg`, and Bevy Vello
 
-|          Feature          |    |           Bevy Resvg           |    |     `bevy_svg`      |    |           Bevy Vello            |
-| ------------------------- | -- | ------------------------------ | -- | ------------------- | -- | ------------------------------- |
-| Source Lines of Code      | 🔽 |                        233[^1] | 🔼 |        1904[^1][^2] | ⏫ |                    6361[^1][^3] |
-| Code Complexity           | 😀 |                         11[^1] | 😵‍💫 |         145[^1][^2] | 😵 |                     409[^1][^3] |
-| Hot-reloading of SVGs     | ✅ | Supported                      | ✅ | Supported           | ❌ | Unsupported                     |
-| Changing runtime color    | ✅ | Supported                      | ❌ | Unsupported         | ❌ | Unsupported                     |
-| Gradients                 | ✅ | Supported                      | ❌ | Unsupported         | ⚠️ | Inaccurate                      |
-| Semi-transparency         | ✅ | Supported                      | ❌ | Unsupported         | ✅ | Supported                       |
-| Positioning and sizing    | ✅ | Native (`Sprite`-based)        | ❌ | Janky and imprecise | ✅ | Native (`Image`-based)          |
-| Static SVG Spec Support   | ✅ | Fully Supported                | ⚠️ | Partial Support     | ⚠️ | Partial Support                 |
-| Rendered quality (normal) | ✅ | Crisp                          | ✅ | Crisp               | ✅ | Crisp                           |
-| Rendered quality (zoomed) | ❌ | Blurry and Pixelated           | ✅ | Crisp               | ✅ | Crisp                           |
-| 3D-Rendering              | ❌ | Unsupported                    | ✅ | Supported           | ✅ | Supported                       |
-| Animated SVGs             | ❌ | Unsupported                    | ❌ | Unsupported         | ❌ | Unsupported                     |
-| Approach                  | 🖼️ | Rasterisation (once)           | 🔺 | Tesselation         | ⚙️ | Rasterisation (JIT every frame) |
-| Output                    | 🏃‍➡️ | Sprite                         | 🕸  | Mesh2d              | 🔀 | Mesh2d with image-based texture |
-| Licence                   | 🟰 | MIT OR Apache-2.0              | 🟰 | MIT OR Apache-2.0   | 🟰 | MIT OR Apache-2.0               |
+| Feature                   |     | Bevy Resvg              |     | `bevy_svg`          |     | Bevy Vello                      |
+| ------------------------- | --- | ----------------------- | --- | ------------------- | --- | ------------------------------- |
+| Source Lines of Code      | 🔽  | 233[^1]                 | 🔼  | 1904[^1][^2]        | ⏫  | 6361[^1][^3]                    |
+| Code Complexity           | 😀  | 11[^1]                  | 😵‍💫  | 145[^1][^2]         | 😵  | 409[^1][^3]                     |
+| Hot-reloading of SVGs     | ✅  | Supported               | ✅  | Supported           | ❌  | Unsupported                     |
+| Changing runtime color    | ✅  | Supported               | ❌  | Unsupported         | ❌  | Unsupported                     |
+| Gradients                 | ✅  | Supported               | ❌  | Unsupported         | ⚠️  | Inaccurate                      |
+| Semi-transparency         | ✅  | Supported               | ❌  | Unsupported         | ✅  | Supported                       |
+| Positioning and sizing    | ✅  | Native (`Sprite`-based) | ❌  | Janky and imprecise | ✅  | Native (`Image`-based)          |
+| Static SVG Spec Support   | ✅  | Fully Supported         | ⚠️  | Partial Support     | ⚠️  | Partial Support                 |
+| Rendered quality (normal) | ✅  | Crisp                   | ✅  | Crisp               | ✅  | Crisp                           |
+| Rendered quality (zoomed) | ❌  | Blurry and Pixelated    | ✅  | Crisp               | ✅  | Crisp                           |
+| 3D-Rendering              | ❌  | Unsupported             | ✅  | Supported           | ✅  | Supported                       |
+| Animated SVGs             | ❌  | Unsupported             | ❌  | Unsupported         | ❌  | Unsupported                     |
+| Approach                  | 🖼️  | Rasterisation (once)    | 🔺  | Tesselation         | ⚙️  | Rasterisation (JIT every frame) |
+| Output                    | 🏃‍➡️  | Sprite                  | 🕸  | Mesh2d              | 🔀  | Mesh2d with image-based texture |
+| Licence                   | 🟰  | MIT OR Apache-2.0       | 🟰  | MIT OR Apache-2.0   | 🟰  | MIT OR Apache-2.0               |
 
->[!NOTE]
->In order to be able to hot-reload your SVGs, you must enable the
->`file_watcher` **BEVY FEATURE** (*not* a feature available in this crate).
+> [!NOTE]
+> In order to be able to hot-reload your SVGs, you must enable the
+> `file_watcher` **BEVY FEATURE** (_not_ a feature available in this crate).
 >
->As a side note, you probably want to enable entire `dev` collection (again,
->the *Bevy feature*, there is *no* feature called `dev` in this crate). It comes
->with a handful of goods, including debug logs and
->[dev tools](https://docs.rs/bevy/latest/bevy/dev_tools/index.html).
+> As a side note, you probably want to enable entire `dev` collection (again,
+> the _Bevy feature_, there is _no_ feature called `dev` in this crate). It comes
+> with a handful of goods, including debug logs and
+> [dev tools](https://docs.rs/bevy/latest/bevy/dev_tools/index.html).
 
 …to be expanded…
 
-## Okay, but when should I *actually* use Bevy Resvg over the others?
+## Okay, but when should I _actually_ use Bevy Resvg over the others?
 
 This is a very complex question to answer. Your best bet is probably going to be
 to just add one to your list of dependencies and try it out; all three projects
@@ -124,7 +126,7 @@ bothered to test why), but positioning and especially sizing SVGs with
 back when I used `bevy_svg`. I have yet to encounter that issue with Bevy Resvg.
 
 Also, although I have no data to back this up, I would assume that Bevy Resvg
-might be a tiny bit faster than `bevy_svg`. Meshes *feel* more expensive than
+might be a tiny bit faster than `bevy_svg`. Meshes _feel_ more expensive than
 simple textures to me, however I am no expert in this area.
 
 During testing, I found that `bevy_svg` couldn't load complex Inkscape-generated
@@ -177,8 +179,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 If you wish to migrate from `bevy_svg` to Bevy Resvg, you must do the following
 actions:
 
->[!IMPORTANT]
->3D rendering is not yet supported in Bevy Resvg.
+> [!IMPORTANT]
+> 3D rendering is not yet supported in Bevy Resvg.
 
 1. Run `cargo remove bevy_svg` and `cargo add bevy_resvg`.
 2. If you were just using `bevy_svg::prelude` in your code, simply replace it
@@ -197,14 +199,14 @@ actions:
 - [ ] Expand [comparison table](#comparison-between-bevy-resvg-bevy_svg-and-bevy-vello)
   - [ ] Particularly, add performance comparisons
 - [x] Handle more
-  [`AssetEvent`](https://docs.rs/bevy/latest/bevy/asset/enum.AssetEvent.html)s
+      [`AssetEvent`](https://docs.rs/bevy/latest/bevy/asset/enum.AssetEvent.html)s
   - [x] `Added`
   - [x] `Modified`
   - [x] `Removed`
   - [x] `Unused`
   - [x] `LoadedWithDependencies`
 - [ ] [`usvg::Options`](https://docs.rs/usvg/latest/usvg/struct.Options.html)
-  support
+      support
   - [ ] CSS support
 
 ## Minimum supported Rust version
@@ -219,10 +221,15 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 [MIT](./LICENCE-MIT) OR [Apache-2.0](./LICENCE-APACHE), at your option.
 
-[^1]: Calculated using [scc](https://github.com/boyter/scc), only counting Rust
-code.
-[^2]: Based on commit
-[`b3a3748` in `Weasy666/bevy_svg`](https://github.com/Weasy666/bevy_svg/commit/b3a3748b09ed1ea65eff634ed10142043b1f856e)
-[^3]: Based on tagged release
-[`v0.13.0` in `linebender/bevy_vello`](https://github.com/linebender/bevy_vello/tree/v0.13.0)
-because later versions of Bevy Vello refuse to compile on my machine.
+[^1]:
+    Calculated using [scc](https://github.com/boyter/scc), only counting Rust
+    code.
+
+[^2]:
+    Based on commit
+    [`b3a3748` in `Weasy666/bevy_svg`](https://github.com/Weasy666/bevy_svg/commit/b3a3748b09ed1ea65eff634ed10142043b1f856e)
+
+[^3]:
+    Based on tagged release
+    [`v0.13.0` in `linebender/bevy_vello`](https://github.com/linebender/bevy_vello/tree/v0.13.0)
+    because later versions of Bevy Vello refuse to compile on my machine.

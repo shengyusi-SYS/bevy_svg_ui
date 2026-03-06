@@ -31,13 +31,7 @@ impl AssetLoader for SvgFileLoader {
                 .load(reader, settings, load_context)
                 .await?;
 
-            let image = vector_asset.render_to_image(RenderAssetUsages::default())?;
-
-            Ok(SvgFile(image))
+            SvgFile::new(vector_asset, RenderAssetUsages::default())
         })
-    }
-
-    fn extensions(&self) -> &[&str] {
-        &["svg", "svgz"]
     }
 }

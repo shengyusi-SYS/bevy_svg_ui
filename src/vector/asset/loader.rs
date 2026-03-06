@@ -4,12 +4,11 @@ use bevy::{
     prelude::*,
     tasks::ConditionalSendFuture,
 };
-use resvg::usvg::{Options, Tree};
 
 /// The [`AssetLoader`] for [`SvgVectorAsset`]s.
 ///
 /// Loads an [`SVG`](https://en.wikipedia.org/wiki/SVG) file into an
-/// [`SvgVectorAsset`] containing a [`Tree`].
+/// [`SvgVectorAsset`] containing both the original data and parsed [`Tree`](resvg::usvg::Tree).
 #[derive(Default, TypePath)]
 pub struct SvgVectorAssetLoader;
 
@@ -27,13 +26,7 @@ impl AssetLoader for SvgVectorAssetLoader {
         Box::pin(async move {
             let mut buf = Vec::new();
             reader.read_to_end(&mut buf).await?;
-            let options = Options::default();
-            let tree = Tree::from_data(&buf, &options)?;
-            Ok(SvgVectorAsset(tree))
+            SvgVectorAsset::new(buf)
         })
-    }
-
-    fn extensions(&self) -> &[&str] {
-        &["svg", "svgz"]
     }
 }

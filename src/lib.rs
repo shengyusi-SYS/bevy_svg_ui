@@ -1,5 +1,3 @@
-#![doc = include_str!("../README.md")]
-
 /// Error utilities for this crate.
 pub mod error;
 /// The [`Plugin`](bevy::app::Plugin) for initialising the Bevy logic an
