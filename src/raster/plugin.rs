@@ -28,6 +28,9 @@ impl Plugin for SvgRasterPlugin {
     }
 }
 
+// A render query does not keep its entity alive until deferred commands run.
+// Use try_insert for projections so retiring a node cancels only that node's output.
+
 /// Marker component to track the current rendering state of an SVG.
 /// This is used to detect changes and re-render when necessary.
 #[derive(Component, Default, Clone, PartialEq)]
@@ -64,7 +67,7 @@ fn spawn_svg_sprites(
                         let size = UVec2::new(image.width(), image.height());
                         let handle = images.add(image);
 
-                        commands.entity(entity).insert((
+                        commands.entity(entity).try_insert((
                             Sprite::from_image(handle),
                             AppliedSvgState {
                                 color: tint_color,
@@ -124,7 +127,7 @@ fn spawn_svg_ui_nodes(
                         let rendered_size = UVec2::new(image.width(), image.height());
                         let handle = images.add(image);
 
-                        commands.entity(entity).insert((
+                        commands.entity(entity).try_insert((
                             ImageNode::new(handle),
                             AppliedSvgState {
                                 color: tint_color,
@@ -165,7 +168,7 @@ fn init_svg_sprites_from_loaded_assets(
             let size = UVec2::new(image.width(), image.height());
             let handle = images.add(image);
 
-            commands.entity(entity).insert((
+            commands.entity(entity).try_insert((
                 Sprite::from_image(handle),
                 AppliedSvgState {
                     color: tint_color,
@@ -208,7 +211,7 @@ fn init_svg_ui_from_loaded_assets(
             let rendered_size = UVec2::new(image.width(), image.height());
             let handle = images.add(image);
 
-            commands.entity(entity).insert((
+            commands.entity(entity).try_insert((
                 ImageNode::new(handle),
                 AppliedSvgState {
                     color: tint_color,
@@ -243,7 +246,7 @@ fn update_svg_sprite_colors(
             let size = UVec2::new(image.width(), image.height());
             let handle = images.add(image);
             sprite.image = handle;
-            commands.entity(entity).insert(AppliedSvgState {
+            commands.entity(entity).try_insert(AppliedSvgState {
                 color: color.0,
                 size,
             });
@@ -293,7 +296,7 @@ fn update_svg_ui_on_changes(
         let handle = images.add(image);
         image_node.image = handle;
 
-        commands.entity(entity).insert(AppliedSvgState {
+        commands.entity(entity).try_insert(AppliedSvgState {
             color: color.0,
             size: rendered_size,
         });
@@ -392,5 +395,97 @@ fn render_svg_image(svg_asset: &SvgFile, target_size: UVec2, color: Color) -> Im
         svg_asset
             .render_at_size(target_size, color_opt, RenderAssetUsages::default())
             .unwrap_or_else(|_| svg_asset.image.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vector::asset::SvgVectorAsset;
+    use bevy::ecs::system::{IntoSystem, System};
+
+    fn svg_nodes() -> (World, Entity, Entity, Handle<SvgFile>) {
+        let mut world = World::new();
+        world.init_resource::<Assets<SvgFile>>();
+        world.init_resource::<Assets<Image>>();
+        world.init_resource::<Messages<AssetEvent<SvgFile>>>();
+        let vector = SvgVectorAsset::new(
+            br#"<svg xmlns="http://www.w3.org/2000/svg" width="2" height="3"><rect width="2" height="3" fill="red"/></svg>"#.to_vec(),
+        )
+        .expect("valid fixture SVG");
+        let svg = SvgFile::new(vector, RenderAssetUsages::default()).expect("fixture rasterizes");
+        let handle = world.resource_mut::<Assets<SvgFile>>().add(svg);
+        let retired = world
+            .spawn((
+                SvgUi::new(handle.clone()),
+                SvgColor::WHITE,
+                SvgScaleMode::Original,
+            ))
+            .id();
+        let surviving = world
+            .spawn((
+                SvgUi::new(handle.clone()),
+                SvgColor::WHITE,
+                SvgScaleMode::Original,
+            ))
+            .id();
+        (world, retired, surviving, handle)
+    }
+
+    fn assert_surviving_projection(world: &World, retired: Entity, surviving: Entity) {
+        assert!(
+            world.get_entity(retired).is_err(),
+            "retired node must not be recreated"
+        );
+        let node = world
+            .get::<ImageNode>(surviving)
+            .expect("live node receives its image");
+        let image = world
+            .resource::<Assets<Image>>()
+            .get(&node.image)
+            .expect("rendered image retained");
+        assert_eq!((image.width(), image.height()), (2, 3));
+        assert_eq!(
+            image.data.as_deref(),
+            Some([255, 0, 0, 255].repeat(6).as_slice())
+        );
+        let state = world
+            .get::<AppliedSvgState>(surviving)
+            .expect("live projection tracks applied state");
+        assert_eq!(state.color, Color::WHITE);
+        assert_eq!(state.size, UVec2::new(2, 3));
+    }
+
+    #[test]
+    fn loaded_svg_initialization_cancels_retired_node_projection() {
+        let (mut world, retired, surviving, _handle) = svg_nodes();
+        let mut system = IntoSystem::into_system(init_svg_ui_from_loaded_assets);
+        system.initialize(&mut world);
+        system
+            .run_without_applying_deferred((), &mut world)
+            .unwrap();
+        assert!(world.get::<ImageNode>(retired).is_none());
+        assert!(world.get::<ImageNode>(surviving).is_none());
+        assert!(world.despawn(retired));
+        system.apply_deferred(&mut world);
+        assert_surviving_projection(&world, retired, surviving);
+    }
+
+    #[test]
+    fn svg_asset_event_cancels_retired_node_projection() {
+        let (mut world, retired, surviving, handle) = svg_nodes();
+        world
+            .resource_mut::<Messages<AssetEvent<SvgFile>>>()
+            .write(AssetEvent::LoadedWithDependencies { id: handle.id() });
+        let mut system = IntoSystem::into_system(spawn_svg_ui_nodes);
+        system.initialize(&mut world);
+        system
+            .run_without_applying_deferred((), &mut world)
+            .unwrap();
+        assert!(world.get::<ImageNode>(retired).is_none());
+        assert!(world.get::<ImageNode>(surviving).is_none());
+        assert!(world.despawn(retired));
+        system.apply_deferred(&mut world);
+        assert_surviving_projection(&world, retired, surviving);
     }
 }
