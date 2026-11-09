@@ -51,7 +51,7 @@ macro_rules! spawn_scale_demo {
                 col.spawn((
                     Text::new($label),
                     TextFont {
-                        font_size: 12.0,
+                        font_size: FontSize::Px(12.0),
                         ..default()
                     },
                     TextColor($accent_color),
@@ -99,7 +99,7 @@ macro_rules! spawn_size_box {
                 col.spawn((
                     Text::new(format!("{}px", $size as i32)),
                     TextFont {
-                        font_size: 11.0,
+                        font_size: FontSize::Px(11.0),
                         ..default()
                     },
                     TextColor(Color::srgb(0.6, 0.6, 0.7)),
@@ -143,10 +143,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
             #[cfg(target_os = "windows")]
             let result = std::os::windows::fs::symlink_dir(&target, &link);
-            
+
             #[cfg(unix)]
             let result = std::os::unix::fs::symlink(&target, &link);
-            
+
             if let Err(e) = result {
                 eprintln!(
                     "Failed to create symlink: {}. This is non-fatal, continuing...",
@@ -208,7 +208,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 header.spawn((
                     Text::new("SVG UI Demo - Flex Layout, Colors & Supersampling"),
                     TextFont {
-                        font_size: 24.0,
+                        font_size: FontSize::Px(24.0),
                         ..default()
                     },
                     TextColor(Color::srgb(0.9, 0.9, 1.0)),
@@ -244,7 +244,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         left_panel.spawn((
                             Text::new("Color Tinting"),
                             TextFont {
-                                font_size: 18.0,
+                                font_size: FontSize::Px(18.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.8, 0.3, 0.5)),
@@ -338,7 +338,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                                 anim_row.spawn((
                                     Text::new("Animated\n(InheritTextColor)"),
                                     TextFont {
-                                        font_size: 13.0,
+                                        font_size: FontSize::Px(13.0),
                                         ..default()
                                     },
                                     TextColor(Color::srgb(0.7, 0.7, 0.8)),
@@ -349,7 +349,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         left_panel.spawn((
                             Text::new("Icon Variety"),
                             TextFont {
-                                font_size: 14.0,
+                                font_size: FontSize::Px(14.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.6, 0.6, 0.7)),
@@ -408,7 +408,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         center_panel.spawn((
                             Text::new("Supersampling AA"),
                             TextFont {
-                                font_size: 18.0,
+                                font_size: FontSize::Px(18.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.3, 0.9, 0.5)),
@@ -453,7 +453,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         center_panel.spawn((
                             Text::new("Note: SVG icons use stroke-width=2.\nHigher supersample renders at\nlarger size, then downscales."),
                             TextFont {
-                                font_size: 11.0,
+                                font_size: FontSize::Px(11.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.5, 0.5, 0.6)),
@@ -463,7 +463,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         center_panel.spawn((
                             Text::new("FitNode Scale Mode"),
                             TextFont {
-                                font_size: 14.0,
+                                font_size: FontSize::Px(14.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.7, 0.7, 0.8)),
@@ -502,7 +502,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         center_panel.spawn((
                             Text::new("Diagonal Edge Analysis"),
                             TextFont {
-                                font_size: 14.0,
+                                font_size: FontSize::Px(14.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.7, 0.7, 0.8)),
@@ -544,7 +544,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                                             col.spawn((
                                                 Text::new(format!("{}x", scale as i32)),
                                                 TextFont {
-                                                    font_size: 11.0,
+                                                    font_size: FontSize::Px(11.0),
                                                     ..default()
                                                 },
                                                 TextColor(Color::srgb(0.5, 0.5, 0.6)),
@@ -574,7 +574,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         right_panel.spawn((
                             Text::new("Flex Layout"),
                             TextFont {
-                                font_size: 18.0,
+                                font_size: FontSize::Px(18.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.6, 0.6, 1.0)),
@@ -584,7 +584,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         right_panel.spawn((
                             Text::new("Row with SpaceBetween"),
                             TextFont {
-                                font_size: 12.0,
+                                font_size: FontSize::Px(12.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.5, 0.5, 0.6)),
@@ -627,7 +627,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         right_panel.spawn((
                             Text::new("Column with gap"),
                             TextFont {
-                                font_size: 12.0,
+                                font_size: FontSize::Px(12.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.5, 0.5, 0.6)),
@@ -675,7 +675,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                                         item_row.spawn((
                                             Text::new(label),
                                             TextFont {
-                                                font_size: 13.0,
+                                                font_size: FontSize::Px(13.0),
                                                 ..default()
                                             },
                                             TextColor(color),
@@ -688,7 +688,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         right_panel.spawn((
                             Text::new("Nested Flex (Card)"),
                             TextFont {
-                                font_size: 12.0,
+                                font_size: FontSize::Px(12.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.5, 0.5, 0.6)),
@@ -741,7 +741,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                                     text_col.spawn((
                                         Text::new("Now Playing"),
                                         TextFont {
-                                            font_size: 14.0,
+                                            font_size: FontSize::Px(14.0),
                                             ..default()
                                         },
                                         TextColor(Color::srgb(0.9, 0.9, 0.95)),
@@ -750,7 +750,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                                     text_col.spawn((
                                         Text::new("Flex Layout Demo"),
                                         TextFont {
-                                            font_size: 11.0,
+                                            font_size: FontSize::Px(11.0),
                                             ..default()
                                         },
                                         TextColor(Color::srgb(0.5, 0.5, 0.6)),
@@ -799,7 +799,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                         left.spawn((
                             Text::new("bevy_svg_ui Demo"),
                             TextFont {
-                                font_size: 14.0,
+                                font_size: FontSize::Px(14.0),
                                 ..default()
                             },
                             TextColor(Color::srgb(0.7, 0.7, 0.8)),
