@@ -27,6 +27,11 @@ impl AsAssetId for Svg {
 /// The [`Component`] that one needs to wrap [`SvgAsset`]s in before
 /// using them in Bevy UIs.
 #[derive(Component, FromTemplate, Clone, Default)]
+#[require(
+    crate::effects::components::SvgColor,
+    crate::effects::components::SvgSize::auto(),
+    Node
+)]
 pub struct UiSvg(pub Handle<SvgAsset>);
 
 impl From<Handle<SvgAsset>> for UiSvg {

@@ -26,8 +26,23 @@ pub struct PendingRaster {
     pub entity: Entity,
     pub size: IntSize,
     pub intent: RasterIntent,
+    pub source: Arc<resvg::usvg::Tree>,
     cancel: Arc<AtomicBool>,
     pub task: Task<Option<Image>>,
+}
+
+/// The actual installed raster, independent of main-world Image retention.
+#[derive(Component)]
+pub struct AppliedRaster {
+    pub source: Arc<resvg::usvg::Tree>,
+    pub size: IntSize,
+}
+impl AppliedRaster {
+    pub fn matches(&self, vector: &crate::vector::asset::SvgAsset, size: IntSize) -> bool {
+        Arc::ptr_eq(&self.source, &vector.0)
+            && self.size.width == size.width
+            && self.size.height == size.height
+    }
 }
 
 #[derive(Resource, Default)]
@@ -49,15 +64,41 @@ impl RasterQueue {
         let cancel1 = Arc::new(AtomicBool::new(false));
         let tree = Arc::clone(&vector.0);
         let cancel = Arc::clone(&cancel1);
-        let task =
-            AsyncComputeTaskPool::get().spawn(async move { rasterise(&tree, size, &cancel1) });
+        let worker_tree = Arc::clone(&tree);
+        // UI-only 2x sampling is resolved back to the requested pixel size on
+        // the worker. It never changes intrinsic layout or GPU texture size.
+        let samples = if matches!(
+            intent,
+            RasterIntent::InsertImageNode(_) | RasterIntent::SwapImageNodeImage
+        ) {
+            2
+        } else {
+            1
+        };
+        let task = AsyncComputeTaskPool::get()
+            .spawn(async move { rasterise(&worker_tree, size, &cancel1, samples) });
         self.0.push(PendingRaster {
             entity,
             size,
             intent,
+            source: tree,
             cancel,
             task,
         });
+    }
+
+    pub fn matches(
+        &self,
+        entity: Entity,
+        vector: &crate::vector::asset::SvgAsset,
+        size: IntSize,
+    ) -> bool {
+        self.0.iter().any(|p| {
+            p.entity == entity
+                && Arc::ptr_eq(&p.source, &vector.0)
+                && p.size.width == size.width
+                && p.size.height == size.height
+        })
     }
 
     pub fn in_flight(&self, entity: Entity) -> Option<IntSize> {

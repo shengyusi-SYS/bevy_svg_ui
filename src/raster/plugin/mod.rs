@@ -15,14 +15,13 @@ pub struct SvgRasterPlugin;
 
 impl Plugin for SvgRasterPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<queue::RasterQueue>()
+        app.add_message::<bevy::window::RequestRedraw>()
+            .init_resource::<queue::RasterQueue>()
             .add_systems(
                 Update,
                 (
                     color::sync_removed_svg_color,
                     color::sync_svg_color_changes,
-                    loading::ui::handle_ui_svg_loaded,
-                    loading::ui::handle_ui_svg_modified,
                     loading::ui::handle_ui_svg_removed,
                     loading::world::handle_svg_loaded,
                     loading::world::handle_svg_modified,
@@ -44,6 +43,10 @@ impl Plugin for SvgRasterPlugin {
                         .after(TransformSystems::Propagate)
                         .after(VisibilitySystems::CheckVisibility)
                         .after(apply::apply_finished_rasters),
+                    redraw_while_pending
+                        .after(auto::world::sync_svg_auto_sizes)
+                        .after(auto::ui::sync_ui_svg_auto_sizes)
+                        .after(apply::apply_finished_rasters),
                     auto::ui::sync_ui_svg_auto_sizes
                         .after(UiSystems::Layout)
                         .after(VisibilitySystems::CheckVisibility)
@@ -52,5 +55,16 @@ impl Plugin for SvgRasterPlugin {
             )
             .add_observer(queue::cancel_raster_on_despawn_svg)
             .add_observer(queue::cancel_raster_on_despawn_ui_svg);
+    }
+}
+
+// Raster workers do not emit AssetServer completion events. Keep reactive hosts
+// awake only while they have pending images to install.
+fn redraw_while_pending(
+    queue: Res<queue::RasterQueue>,
+    mut redraw: MessageWriter<bevy::window::RequestRedraw>,
+) {
+    if !queue.0.is_empty() {
+        redraw.write(bevy::window::RequestRedraw);
     }
 }

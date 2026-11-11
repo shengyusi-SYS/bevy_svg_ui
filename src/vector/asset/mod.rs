@@ -7,7 +7,6 @@ use bevy::{
     render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 use resvg::{
-    render_node,
     tiny_skia::Pixmap,
     usvg::{Transform, Tree},
 };
@@ -53,13 +52,17 @@ impl Default for IntSize {
 ///
 /// ## Cancellation
 ///
-/// Between every top-level [`SVG`](https://en.wikipedia.org/wiki/SVG)
-/// [node](https://en.wikipedia.org/wiki/Node_(computer_science)), `cancelled` is checked, and if
-/// it's [`true`](bool), further iteration is prevented and [`None`] is returned. However, due to
-/// visibility in [`resvg`], this only works for top-level nodes. A deeply nested node may still
-/// block even after `cancelled` has been set to [`AtomicBool::new(true)`](AtomicBool::new).
-pub(crate) fn rasterise(tree: &Tree, size: IntSize, cancel: &AtomicBool) -> Option<Image> {
+/// Cancellation is checked before and after the complete resvg render. A running
+/// render finishes on its worker, but its cancelled result is never installed.
+pub(crate) fn rasterise(
+    tree: &Tree,
+    size: IntSize,
+    cancel: &AtomicBool,
+    samples: u32,
+) -> Option<Image> {
     let (width, height) = size.dimensions();
+    let raster_width = width.checked_mul(samples)?;
+    let raster_height = height.checked_mul(samples)?;
     let original_size = tree.size();
     let (original_width, original_height) = (original_size.width(), original_size.height());
 
@@ -68,35 +71,51 @@ pub(crate) fn rasterise(tree: &Tree, size: IntSize, cancel: &AtomicBool) -> Opti
         reason = "Irrelevant, we could just as well have used f16"
     )]
     let (sx, sy) = (
-        width as f32 / original_width,
-        height as f32 / original_height,
+        raster_width as f32 / original_width,
+        raster_height as f32 / original_height,
     );
     let transform = Transform::from_scale(sx, sy);
 
-    let mut pixmap = Pixmap::new(width, height).unwrap_or_else(|| unreachable!());
-    let mut pixmap_mut = pixmap.as_mut();
-
-    for node in tree.root().children() {
-        if cancel.load(Ordering::Relaxed) {
-            return None;
-        }
-        let Some(bbox) = node.abs_layer_bounding_box() else {
-            continue;
-        };
-        let node_transform = transform.pre_translate(bbox.x(), bbox.y());
-        render_node(node, node_transform, &mut pixmap_mut);
+    let mut pixmap = Pixmap::new(raster_width, raster_height)?;
+    if cancel.load(Ordering::Relaxed) {
+        return None;
+    }
+    // Render the complete SVG. Per-node layer bounds can be empty for stroked
+    // horizontal/vertical paths, despite those paths having visible geometry.
+    resvg::render(tree, transform, &mut pixmap.as_mut());
+    if cancel.load(Ordering::Relaxed) {
+        return None;
     }
 
+    let pixmap = if samples > 1 {
+        let mut resolved = Pixmap::new(width, height)?;
+        resolved.draw_pixmap(
+            0,
+            0,
+            pixmap.as_ref(),
+            &resvg::tiny_skia::PixmapPaint {
+                quality: resvg::tiny_skia::FilterQuality::Bilinear,
+                ..Default::default()
+            },
+            Transform::from_scale(1.0 / samples as f32, 1.0 / samples as f32),
+            None,
+        );
+        resolved
+    } else {
+        pixmap
+    };
     let size = Extent3d {
         width: pixmap.width(),
         height: pixmap.height(),
         depth_or_array_layers: 1,
     };
-    Some(Image::new(
+    let mut image = Image::new(
         size,
         TextureDimension::D2,
-        pixmap.take(),
-        TextureFormat::Rgba8Unorm,
+        pixmap.take_demultiplied(),
+        TextureFormat::Rgba8UnormSrgb,
         RenderAssetUsages::RENDER_WORLD,
-    ))
+    );
+    image.sampler = bevy::image::ImageSampler::linear();
+    Some(image)
 }

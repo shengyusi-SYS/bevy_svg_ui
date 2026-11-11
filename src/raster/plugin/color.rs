@@ -10,11 +10,15 @@ pub fn sync_svg_color_changes(
     mut ui_svg_query: Query<(&SvgColor, &mut ImageNode), (With<UiSvg>, Changed<SvgColor>)>,
 ) {
     for (svg_color, mut sprite) in &mut svg_query {
-        sprite.color = svg_color.0;
+        if sprite.color != svg_color.0 {
+            sprite.color = svg_color.0;
+        }
     }
 
     for (svg_color, mut image_node) in &mut ui_svg_query {
-        image_node.color = svg_color.0;
+        if image_node.color != svg_color.0 {
+            image_node.color = svg_color.0;
+        }
     }
 }
 
